@@ -6,13 +6,8 @@ const SocialUser = require("./models/user.model");
 
 const app = express();
 
-const corsOptions = {
-  origin: "*",
-  credentials: true,
-};
-
+app.use(cors());
 app.use(express.json());
-app.use(cors(corsOptions));
 
 initializeDatabase();
 
