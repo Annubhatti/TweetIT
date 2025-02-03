@@ -6,8 +6,13 @@ const SocialUser = require("./models/user.model");
 
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+};
+
 app.use(express.json());
+app.use(cors(corsOptions));
 
 initializeDatabase();
 
@@ -490,4 +495,8 @@ app.post("/api/users/user/edit/:userId", async (req, res) => {
   }
 });
 
-module.exports = app;
+const PORT = 4000;
+
+app.listen(PORT, () => {
+  console.log(`Server Running on PORT: ${PORT}`);
+});
