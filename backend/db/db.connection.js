@@ -1,18 +1,11 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-const mongoUri = process.env.MONGODB;
+const mongoUri = process.env.MONGO_URI;
 
 const initializeDatabase = async () =>{
 await mongoose
-  .connect(mongoUri,{
-    useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Reduce timeout time
-      connectTimeoutMS: 10000, // 10s timeout
-      keepAlive: true,
-      keepAliveInitialDelay: 300000,
-  })
+  .connect(mongoUri)
   .then(() => {
     console.log("Connected to database");
   })
