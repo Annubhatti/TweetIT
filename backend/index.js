@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { initializeDatabase } = require("./db/db.connection");
@@ -6,6 +7,7 @@ const SocialUser = require("./models/user.model");
 
 const app = express();
 
+// CORS Configuration
 const corsOptions = {
   origin: "*",
   credentials: true,
@@ -14,489 +16,200 @@ const corsOptions = {
 app.use(express.json());
 app.use(cors(corsOptions));
 
+// Initialize Database
 initializeDatabase();
 
-const getPosts = async () => {
-  try {
-    const posts = await SocialPosts.find().populate("user");
-    return posts;
-  } catch (error) {
-    console.log(error);
-  }
-};
+// // ✅ Sample Data Setup Route
+// app.get("/api/setup", async (req, res) => {
+//   try {
+//     // 🗑️ Clear existing data
+//     await SocialUser.deleteMany({});
+//     await SocialPosts.deleteMany({});
 
+//     console.log("✅ Previous data deleted");
+
+//     // 👤 Create sample users
+//     const user1 = new SocialUser({
+//       userName: "John Doe",
+//       userAt: "johndoe",
+//       bio: "Software Engineer & Tech Enthusiast.",
+//       avatarUrl: "https://randomuser.me/api/portraits/men/1.jpg",
+//       followers: [],
+//       following: [],
+//       posts: [],
+//       bookmarks: [],
+//       likedPosts: []
+//     });
+
+//     const user2 = new SocialUser({
+//       userName: "Jane Doe",
+//       userAt: "janedoe",
+//       bio: "Passionate about AI & Web Development.",
+//       avatarUrl: "https://randomuser.me/api/portraits/women/2.jpg",
+//       followers: [],
+//       following: [],
+//       posts: [],
+//       bookmarks: [],
+//       likedPosts: []
+//     });
+
+//     const savedUser1 = await user1.save();
+//     const savedUser2 = await user2.save();
+
+//     console.log("✅ Users added:", savedUser1.userName, savedUser2.userName);
+
+//     // 📝 Create sample posts
+//     const post1 = new SocialPosts({
+//       user: savedUser1._id,
+//       description: "Hello, this is my first post!",
+//       imageUrl: "https://source.unsplash.com/random/300×300",
+//       videoUrl: "",
+//       gifUrl: "",
+//       likesCount: 0,
+//       likes: [],
+//       comments: []
+//     });
+
+//     const post2 = new SocialPosts({
+//       user: savedUser2._id,
+//       description: "Excited to be here!",
+//       imageUrl: "",
+//       videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+//       gifUrl: "",
+//       likesCount: 1,
+//       likes: [savedUser1._id],
+//       comments: [
+//         {
+//           user: savedUser1._id,
+//           comment: "Welcome to the community!"
+//         }
+//       ]
+//     });
+
+//     const savedPost1 = await post1.save();
+//     const savedPost2 = await post2.save();
+
+//     console.log("✅ Posts added:", savedPost1.description, savedPost2.description);
+
+//     // Link posts to users
+//     savedUser1.posts.push(savedPost1._id);
+//     savedUser2.posts.push(savedPost2._id);
+//     await savedUser1.save();
+//     await savedUser2.save();
+
+//     res.json({ message: "🎉 Sample data added successfully!" });
+//   } catch (error) {
+//     console.error("❌ Error setting up sample data:", error.message);
+//     res.status(500).json({ error: `Error setting up data: ${error.message}` });
+//   }
+// });
+
+// ✅ Fetch all posts
 app.get("/api/posts", async (req, res) => {
   try {
-    const posts = await getPosts();
-
-    if (posts && posts.length > 0) {
+    const posts = await SocialPosts.find().populate("user");
+    if (posts.length > 0) {
       res.json(posts);
     } else {
-      res.status(404).json({ error: `Posts not found` });
+      res.status(404).json({ error: "Posts not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: `Failed to get posts error: ${error}` });
+    res.status(500).json({ error: `Failed to get posts: ${error.message}` });
   }
 });
 
-const addPost = async (userId, post) => {
+// ✅ Add a new post
+app.post("/api/user/post", async (req, res) => {
   try {
-    const user = await SocialUser.findById(userId);
+    const user = await SocialUser.findById(req.body.userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-    const newPost = new SocialPosts({
-      ...post,
-      user: user._id,
-    });
+    const newPost = new SocialPosts({ ...req.body.post, user: user._id });
     const savedPost = await newPost.save();
 
     user.posts.push(savedPost._id);
-    user.save();
+    await user.save();
 
-    return savedPost;
+    res.json(savedPost);
   } catch (error) {
-    console.log(error);
-  }
-};
-
-app.post("/api/user/post", async (req, res) => {
-  try {
-    const post = await addPost(req.body.userId, req.body.post);
-    if (post) {
-      res.json(post);
-    } else {
-      res.status(404).json({ error: `Post not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to add post error: ${error}` });
+    res.status(500).json({ error: `Error adding post: ${error.message}` });
   }
 });
 
-const getPostById = async (id) => {
-  try {
-    const post = await SocialPosts.findById(id).populate("user");
-    return post;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
+// ✅ Fetch a post by ID
 app.get("/api/posts/:postId", async (req, res) => {
   try {
-    const post = await getPostById(req.params.postId);
-
+    const post = await SocialPosts.findById(req.params.postId).populate("user");
     if (post) {
       res.json(post);
     } else {
-      res.status(404).json({ error: `Post not found` });
+      res.status(404).json({ error: "Post not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: `Failed to get post error: ${error}` });
+    res.status(500).json({ error: `Failed to get post: ${error.message}` });
   }
 });
 
-const editPost = async (data, id) => {
-  try {
-    const post = await SocialPosts.findByIdAndUpdate(id, data, { new: true });
-
-    return post;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.post("/api/posts/edit/:postId", async (req, res) => {
-  try {
-    const post = await editPost(req.body, req.params.postId);
-    if (post) {
-      res.json(post);
-    } else {
-      res.status(404).json({ error: `Post not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to edit post error: ${error}` });
-  }
-});
-
-const likePost = async (postId, userId) => {
-  try {
-    const post = await SocialPosts.findById(postId);
-    post.likesCount = post.likesCount + 1;
-    await post.save();
-
-    post.likes.push(userId);
-    await post.save();
-
-    const user = await SocialUser.findById(userId);
-    user.likedPosts.push(postId);
-    await user.save();
-
-    return post;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
+// ✅ Like a post
 app.post("/api/posts/like/:postId", async (req, res) => {
   try {
-    const post = await likePost(req.params.postId, req.body.userId);
-    if (post) {
-      res.json(post);
-    } else {
-      res.status(404).json({ error: `Post not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to like a post error: ${error}` });
-  }
-});
+    const post = await SocialPosts.findById(req.params.postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
 
-const dislikePost = async (postId, userId) => {
-  try {
-    const post = await SocialPosts.findById(postId);
-    if (post.likesCount > 0) {
-      const minus = post.likesCount - 1;
-      post.likesCount = minus;
-      await post.save();
-    }
-    post.likes = [...post.likes].filter((id) => id.toString() !== userId);
+    post.likesCount += 1;
+    post.likes.push(req.body.userId);
     await post.save();
 
-    const user = await SocialUser.findById(userId);
-    user.likedPosts = [...user.likedPosts].filter(
-      (id) => id.toString() !== postId
-    );
-    await user.save();
-
-    return post;
+    res.json(post);
   } catch (error) {
-    console.log(error);
-  }
-};
-
-app.post("/api/posts/dislike/:postId", async (req, res) => {
-  try {
-    const post = await dislikePost(req.params.postId, req.body.userId);
-    if (post) {
-      res.json(post);
-    } else {
-      res.status(404).json({ error: `Post not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to dislike a post error: ${error}` });
+    res.status(500).json({ error: `Error liking post: ${error.message}` });
   }
 });
 
-const deletePost = async (postId, userId) => {
-  try {
-    const user = await SocialUser.findById(userId);
-    user.posts = [...user.posts].filter((id) => id.toString() !== postId);
-    user.bookmarks = [...user.bookmarks].filter(
-      (id) => id.toString() !== postId
-    );
-    user.likedPosts = [...user.likedPosts].filter(
-      (id) => id.toString() !== postId
-    );
-
-    await user.save();
-
-    const post = await SocialPosts.findByIdAndDelete(postId);
-    return post;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
+// ✅ Delete a post
 app.delete("/api/user/posts/:postId", async (req, res) => {
   try {
-    const post = await deletePost(req.params.postId, req.body.userId);
-
+    const post = await SocialPosts.findByIdAndDelete(req.params.postId);
     if (post) {
-      res.json(post);
+      res.json({ message: "Post deleted successfully" });
     } else {
-      res.status(404).json({ error: `Post not found` });
+      res.status(404).json({ error: "Failed to delete post" });
     }
   } catch (error) {
-    res.status(500).json({ error: `Failed to delete post error: ${error}` });
+    res.status(500).json({ error: `Error deleting post: ${error.message}` });
   }
 });
 
-const addToUserBookmarks = async (userId, postId) => {
-  try {
-    const user = await SocialUser.findById(userId);
-    user.bookmarks.push(postId);
-    await user.save();
-    return user.bookmarks;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.post("/api/users/bookmark/:postId/", async (req, res) => {
-  try {
-    const post = await addToUserBookmarks(req.body.userId, req.params.postId);
-
-    if (post) {
-      res.json(post);
-    } else {
-      res.status(404).json({ error: `Post not found` });
-    }
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: `Failed to bookmark a post error: ${error}` });
-  }
-});
-
-const getUserBookmarks = async (userId) => {
-  try {
-    const user = await SocialUser.findById(userId).populate("bookmarks");
-    const bookmarks = await Promise.all(
-      user.bookmarks.map((post) => post.populate("user"))
-    );
-
-    return bookmarks;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.get("/api/users/bookmark/:userId", async (req, res) => {
-  try {
-    const bookmarks = await getUserBookmarks(req.params.userId);
-
-    if (bookmarks) {
-      res.json(bookmarks);
-    } else {
-      res.status(404).json({ error: `bookmarks not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to get bookmarks error: ${error}` });
-  }
-});
-
-const removeUserBookmark = async (userId, postId) => {
-  try {
-    const user = await SocialUser.findById(userId);
-    user.bookmarks = [...user.bookmarks].filter(
-      (id) => id.toString() !== postId
-    );
-    await user.save();
-    return user.bookmarks;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.post("/api/users/remove-bookmark/:postId", async (req, res) => {
-  try {
-    const bookmarks = await removeUserBookmark(
-      req.body.userId,
-      req.params.postId
-    );
-
-    if (bookmarks) {
-      res.json(bookmarks);
-    } else {
-      res.status(404).json({ error: `bookmark not found` });
-    }
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: `Failed to remove bookmark error: ${error}` });
-  }
-});
-
-const getAllUsers = async () => {
-  try {
-    const users = await SocialUser.find();
-    return users;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
+// ✅ Fetch all users
 app.get("/api/users", async (req, res) => {
   try {
-    const users = await getAllUsers();
-
-    if (users && users.length > 0) {
+    const users = await SocialUser.find();
+    if (users.length > 0) {
       res.json(users);
     } else {
-      res.status(404).json({ error: `users not found` });
+      res.status(404).json({ error: "Users not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: `Failed to get users error: ${error}` });
+    res.status(500).json({ error: `Error fetching users: ${error.message}` });
   }
 });
 
-const addUsers = async (usersData) => {
+// ✅ Fetch user by ID
+app.get("/api/users/:userId", async (req, res) => {
   try {
-    const users = [];
-    for (let i = 0; i < usersData.length; i++) {
-      const newUser = new SocialUser(usersData[i]);
-      const savedUser = await newUser.save();
-      users.push(savedUser);
-    }
-    return users;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.post("/api/users", async (req, res) => {
-  try {
-    const users = await addUsers(req.body);
-
-    if (users && users.length > 0) {
-      res.json(users);
-    } else {
-      res.status(404).json({ error: `users not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to get users error: ${error}` });
-  }
-});
-
-const followUser = async (userId, followUserId) => {
-  try {
-    const user = await SocialUser.findById(userId);
-    user.following.push(followUserId);
-    await user.save();
-
-    const followUser = await SocialUser.findById(followUserId);
-    followUser.followers.push(userId);
-    await followUser.save();
-
-    return user.following;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.post("/api/users/follow/:followUserId", async (req, res) => {
-  try {
-    const user = await followUser(req.body.userId, req.params.followUserId);
-
-    if (user && user.length > 0) {
-      res.json(user);
-    } else {
-      res.status(404).json({ error: `user not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to follow user error: ${error}` });
-  }
-});
-
-const unFollowUser = async (userId, followUserId) => {
-  try {
-    const user = await SocialUser.findById(userId);
-    user.following = [...user.following].filter(
-      (id) => followUserId.toString() !== id.toString()
-    );
-    await user.save();
-
-    const followUser = await SocialUser.findById(followUserId);
-    followUser.followers = [...followUser.following].filter(
-      (id) => followUserId.toString() !== id.toString()
-    );
-    await followUser.save();
-
-    return user.following;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.post("/api/users/unfollow/:followUserId", async (req, res) => {
-  try {
-    const user = await unFollowUser(req.body.userId, req.params.followUserId);
-
-    if (user && user.length > 0) {
-      res.json(user);
-    } else {
-      res.status(404).json({ error: `user not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to follow user error: ${error}` });
-  }
-});
-
-const getUserPosts = async (userId) => {
-  try {
-    const user = await SocialUser.findById(userId).populate("posts");
-    const posts = await Promise.all(
-      user.posts.map((post) => post.populate("user"))
-    );
-
-    return posts;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.get("/api/users/user/posts/:userId", async (req, res) => {
-  try {
-    const posts = await getUserPosts(req.params.userId);
-
-    if (posts && posts.length > 0) {
-      res.json(posts);
-    } else {
-      res.status(404).json({ error: `posts not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to get posts error: ${error}` });
-  }
-});
-
-const getUserById = async (userId) => {
-  try {
-    const user = await SocialUser.findById(userId);
-    return user;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-app.get("/api/users/user/id/:userId", async (req, res) => {
-  try {
-    const user = await getUserById(req.params.userId);
-
+    const user = await SocialUser.findById(req.params.userId);
     if (user) {
       res.json(user);
     } else {
-      res.status(404).json({ error: `user not found` });
+      res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: `Failed to get user error: ${error}` });
+    res.status(500).json({ error: `Failed to get user: ${error.message}` });
   }
 });
 
-const editUser = async (userId, data) => {
-  try {
-    const user = await SocialUser.findByIdAndUpdate(userId, data, {
-      new: true,
-    });
-    return user;
-  } catch (error) {
-    console.log(user);
-  }
-};
-
-app.post("/api/users/user/edit/:userId", async (req, res) => {
-  try {
-    const user = await editUser(req.params.userId, req.body);
-
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).json({ error: `user not found` });
-    }
-  } catch (error) {
-    res.status(500).json({ error: `Failed to update user error: ${error}` });
-  }
-});
-
-const PORT = 4000;
-
+// Start Server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server Running on PORT: ${PORT}`);
+  console.log(`✅ Server Running on PORT: ${PORT}`);
 });
