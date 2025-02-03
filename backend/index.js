@@ -18,6 +18,8 @@ app.use(cors(corsOptions));
 
 initializeDatabase();
 
+
+
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await SocialPosts.find().populate("user");
