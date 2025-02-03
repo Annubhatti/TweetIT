@@ -495,7 +495,7 @@ app.post("/api/users/user/edit/:userId", async (req, res) => {
   }
 });
 
-const PORT = 3000;
+const PORT = 4000;
 
 app.listen(PORT, () => {
   console.log(`Server Running on PORT: ${PORT}`);

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-require("dotenv").config({path: "D:\NeoG\Projects\TweeIT\backend\.env"});
+require("dotenv").config();
 
 const mongoUri = process.env.MONGODB;
 
@@ -9,7 +9,7 @@ await mongoose
   .then(() => {
     console.log("Connected to database");
   })
-  .catch((error) => console.log("Failed to connect to MONGODB", error));
+  .catch((error) => console.log("Error connected to the Databse", error));
 
 };
 
