@@ -5,7 +5,14 @@ const mongoUri = process.env.MONGODB;
 
 const initializeDatabase = async () =>{
 await mongoose
-  .connect(mongoUri)
+  .connect(mongoUri,{
+    useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Reduce timeout time
+      connectTimeoutMS: 10000, // 10s timeout
+      keepAlive: true,
+      keepAliveInitialDelay: 300000,
+  })
   .then(() => {
     console.log("Connected to database");
   })
