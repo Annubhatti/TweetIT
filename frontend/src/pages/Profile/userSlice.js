@@ -3,7 +3,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 export const readUser = createAsyncThunk("readUser", async () => {
   try {
     const res = await fetch(
-      "https://tweet-it-backend-topaz.vercel.app/api/users/user/id/66e183147b64fafc1e2fa38a"
+      "https://tweet-it-backend-topaz.vercel.app/api/users/66e183147b64fafc1e2fa38a"
     );
 
     if (!res.ok) {

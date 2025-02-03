@@ -1,7 +1,7 @@
 export const follow = async ({ followUserId, userId }) => {
   try {
     const res = await fetch(
-      `tweet-it-backend-topaz.vercel.app/api/users/follow/${followUserId}`,
+      `https://tweet-it-backend-topaz.vercel.app/api/users/follow/${followUserId}`,
       {
         method: "POST",
         headers: {

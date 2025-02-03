@@ -1,7 +1,7 @@
 export const unFollow = async ({ followUserId, userId }) => {
   try {
     const res = await fetch(
-      `tweet-it-backend-topaz.vercel.app/api/users/unfollow/${followUserId}`,
+      `https://tweet-it-backend-topaz.vercel.app/api/users/unfollow/${followUserId}`,
       {
         method: "POST",
         headers: {

@@ -41,42 +41,63 @@ const FollowSection = () => {
     );
   }, [text, users, mainUserId]);
 
-  // ✅ Follow User Function (Fix)
-  const followHandler = async (user) => {
-    if (!mainUserId) {
-      toast.error("User not found");
-      return;
-    }
-    try {
-      await follow({ followUserId: user._id, userId: mainUserId });
-      dispatch(readOtherUser(user._id));
-      dispatch(followed(user._id));
-      dispatch(followUser({ followUserId: user._id, userId: mainUserId }));
-      toast.success("Following");
-    } catch (error) {
-      toast.error("Failed to follow user");
-    }
+  // // ✅ Follow User Function (Fix)
+  // const followHandler = async (user) => {
+  //   if (!mainUserId) {
+  //     toast.error("User not found");
+  //     return;
+  //   }
+  //   try {
+  //     await follow({ followUserId: user._id, userId: mainUserId });
+  //     dispatch(readOtherUser(user._id));
+  //     dispatch(followed(user._id));
+  //     dispatch(followUser({ followUserId: user._id, userId: mainUserId }));
+  //     toast.success("Following");
+  //   } catch (error) {
+  //     toast.error("Failed to follow user");
+  //   }
+  // };
+
+  // // ✅ Unfollow User Function (Fix)
+  // const unFollowHandler = async (user) => {
+  //   if (!mainUserId) {
+  //     toast.error("User not found");
+  //     return;
+  //   }
+  //   try {
+  //     await unFollow({ followUserId: user._id, userId: mainUserId });
+  //     dispatch(readOtherUser(user._id));
+  //     dispatch(unfollowed(user._id));
+  //     dispatch(unfollowUser({ followUserId: user._id, userId: mainUserId }));
+  //     toast.success("Unfollowed");
+  //   } catch (error) {
+  //     toast.error("Failed to unfollow user");
+  //   }
+  // };
+
+  // if (loading) return <p>Loading users...</p>;
+  // if (error) return <p className="text-danger">Error: {error}</p>;
+
+  const followHandler = async (user, userId) => {
+    await follow({ followUserId: user?._id, userId });
+    dispatch(readOtherUser(user?._id));
+
+    dispatch(followed(user?._id));
+    dispatch(followUser({ followUserId: user?._id, userId }));
+
+    toast.success("Following");
   };
 
-  // ✅ Unfollow User Function (Fix)
-  const unFollowHandler = async (user) => {
-    if (!mainUserId) {
-      toast.error("User not found");
-      return;
-    }
-    try {
-      await unFollow({ followUserId: user._id, userId: mainUserId });
-      dispatch(readOtherUser(user._id));
-      dispatch(unfollowed(user._id));
-      dispatch(unfollowUser({ followUserId: user._id, userId: mainUserId }));
-      toast.success("Unfollowed");
-    } catch (error) {
-      toast.error("Failed to unfollow user");
-    }
-  };
+  const unFollowHandler = async (user, userId) => {
+    await unFollow({ followUserId: user?._id, userId });
+    dispatch(readOtherUser(user?._id));
 
-  if (loading) return <p>Loading users...</p>;
-  if (error) return <p className="text-danger">Error: {error}</p>;
+    dispatch(unfollowed(user?._id));
+
+    dispatch(unfollowUser({ followUserId: user?._id, userId }));
+
+    toast.success("unfollowed");
+  };
 
   return (
     <div className="p-3">

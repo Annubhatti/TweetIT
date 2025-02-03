@@ -1,7 +1,7 @@
 export const removeFromBookmark = async (id, userId) => {
   try {
     const res = await fetch(
-      `tweet-it-backend-topaz.vercel.app/api/users/remove-bookmark/${id}`,
+      `https://tweet-it-backend-topaz.vercel.app/api/users/remove-bookmark/${id}`,
       {
         method: "POST",
         headers: {

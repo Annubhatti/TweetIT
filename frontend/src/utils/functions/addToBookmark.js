@@ -1,7 +1,7 @@
 export const addToBookmark = async (id, userId) => {
   try {
     const res = await fetch(
-      `tweet-it-backend-topaz.vercel.app/api/users/bookmark/${id}`,
+      `https://tweet-it-backend-topaz.vercel.app/api/users/bookmark/${id}`,
       
       {
         method: "POST",

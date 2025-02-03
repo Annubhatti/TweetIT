@@ -1,7 +1,7 @@
 export const likeAPost = async (id, userId) => {
   try {
     const res = await fetch(
-      `tweet-it-backend-topaz.vercel.app/api/posts/like/${id}`,
+      `https://tweet-it-backend-topaz.vercel.app/api/posts/like/${id}`,
       {
         method: "POST",
         headers: {

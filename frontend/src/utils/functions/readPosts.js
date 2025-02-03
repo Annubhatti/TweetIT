@@ -2,7 +2,7 @@ export const readPosts = async (id) => {
   try {
     if (id) {
       const res = await fetch(
-        `tweet-it-backend-topaz.vercel.app/api/users/user/posts/${id}`
+        `https://tweet-it-backend-topaz.vercel.app/api/users/user/posts/${id}`
       );
 
       if (!res.ok) {
