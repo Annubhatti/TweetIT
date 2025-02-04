@@ -22,18 +22,19 @@ app.get("/", (req, res)=>{
   res.send("This is Tweet App")
 })
 
+
 app.get("/api/posts", async (req, res) => {
   try {
-    const posts = await SocialPosts.find().populate("user");
-    if (posts.length > 0) {
-      res.json(posts);
-    } else {
-      res.status(404).json({ error: "Posts not found" });
+    const posts = await SocialPosts.find().populate("user"); // Populate user data
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({ error: "No posts found" });
     }
+    res.json(posts);
   } catch (error) {
     res.status(500).json({ error: `Failed to get posts: ${error.message}` });
   }
 });
+
 
 
 app.post("/api/user/post", async (req, res) => {
@@ -68,6 +69,7 @@ app.get("/api/posts/:postId", async (req, res) => {
 });
 
 
+
 app.post("/api/posts/like/:postId", async (req, res) => {
   try {
     const post = await SocialPosts.findById(req.params.postId);
@@ -96,6 +98,9 @@ app.delete("/api/user/posts/:postId", async (req, res) => {
     res.status(500).json({ error: `Error deleting post: ${error.message}` });
   }
 });
+
+
+
 
 
 app.get("/api/users", async (req, res) => {
