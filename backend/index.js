@@ -18,7 +18,9 @@ app.use(cors(corsOptions));
 
 initializeDatabase();
 
-
+app.get("/", (req, res)=>{
+  res.send("This is Tweet App")
+})
 
 app.get("/api/posts", async (req, res) => {
   try {
@@ -120,6 +122,24 @@ app.get("/api/users/:userId", async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: `Failed to get user: ${error.message}` });
+  }
+});
+
+app.put("/api/users/:userId", async (req, res) => {
+  try {
+    const updatedUser = await SocialUser.findByIdAndUpdate(
+      req.params.userId,
+      { $set: req.body }, // Update all fields sent in request
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ error: `Failed to update user: ${error.message}` });
   }
 });
 
